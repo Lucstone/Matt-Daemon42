@@ -1,0 +1,124 @@
+# Clean
+sudo pkill -9 Matt_daemon 2>/dev/null
+sudo rm -f /var/lock/matt_daemon.lock
+sudo rm -f /var/log/matt_daemon/matt_daemon.log
+
+# root permissions
+./MattDaemon
+
+# Start and init
+sudo ./MattDaemon
+ps aux | grep MattDaemon | grep -v grep
+ls -la /var/lock/ | grep matt_daemon.lock
+sudo cat /var/log/matt_daemon/matt_daemon.log
+
+# Multi instances must failed
+sudo ./MattDaemon
+sudo tail -n 3 /var/log/matt_daemon/matt_daemon.log
+
+# Is MattDaemon on background?
+ps aux | grep MattDaemon | grep -v grep | awk '{print $7}'
+
+# Check port 4242
+sudo ss -tlnp | grep 4242
+nc localhost 4242
+
+# LOG text
+Hello
+Test1
+test 2
+# From a second terminal
+sudo tail -f /var/log/matt_daemon/matt_daemon.log
+
+# quit
+quit
+ps aux | grep MattDaemon | grep -v grep
+ls -la /var/lock/ | grep matt_daemon.lock
+sudo tail -n 2 /var/log/matt_daemon/matt_daemon.log
+
+# Multi clients -> 4 terminal
+sudo ./MattDaemon
+nc localhost 4242
+
+# Test SIGTERM
+PID=$(ps aux | grep MattDaemon | grep -v grep | awk '{print $2}')
+sudo kill -15 $PID
+ps aux | grep MattDaemon | grep -v grep
+ls -la /var/lock/ | grep matt_daemon.lock
+sudo tail -n 2 /var/log/matt_daemon/matt_daemon.log
+
+# Test SIGINT
+sudo ./MattDaemon
+PID=$(ps aux | grep MattDaemon | grep -v grep | awk '{print $2}')
+sudo kill -2 $PID
+ps aux | grep MattDaemon | grep -v grep
+ls -la /var/lock/ | grep matt_daemon.lock
+sudo tail -n 2 /var/log/matt_daemon/matt_daemon.log
+
+# Test SIGHUP
+sudo ./MattDaemon
+PID=$(ps aux | grep MattDaemon | grep -v grep | awk '{print $2}')
+sudo kill -1 $PID
+ps aux | grep MattDaemon | grep -v grep
+ls -la /var/lock/ | grep matt_daemon.lock
+sudo tail -n 2 /var/log/matt_daemon/matt_daemon.log
+
+# Test SIGQUIT
+sudo ./MattDaemon
+PID=$(ps aux | grep MattDaemon | grep -v grep | awk '{print $2}')
+sudo kill -3 $PID
+ps aux | grep MattDaemon | grep -v grep
+ls -la /var/lock/ | grep matt_daemon.lock
+sudo tail -n 2 /var/log/matt_daemon/matt_daemon.log
+
+# Test with many messages
+sudo ./MattDaemon
+(for i in {1..100}; do echo "Message $i"; sleep 0.01; done; echo "quit") | nc localhost 4242
+sudo grep "User input:" /var/log/matt_daemon/matt_daemon.log | tail -20
+echo $(sudo grep "User input:" /var/log/matt_daemon/matt_daemon.log | wc -l)
+
+# Test with many messages from 3 clients
+cat > test_3_clients.sh << 'EOF'
+#!/bin/bash
+
+# Client 1
+(
+  for i in {1..50}; do
+    echo "Client1_Message_$i"
+    sleep 0.05
+  done
+  echo "quit"
+) | nc localhost 4242 &
+
+# Client 2
+(
+  for i in {1..50}; do
+    echo "Client2_Message_$i"
+    sleep 0.05
+  done
+) | nc localhost 4242 &
+
+# Client 3
+(
+  for i in {1..50}; do
+    echo "Client3_Message_$i"
+    sleep 0.05
+  done
+) | nc localhost 4242 &
+
+wait
+EOF
+
+chmod +x test_3_clients.sh
+sudo ./MattDaemon
+./test_3_clients.sh
+sudo grep "User input:" /var/log/matt_daemon/matt_daemon.log | tail -30
+echo "Messages Client 1: $(sudo grep "Client1_Message" /var/log/matt_daemon/matt_daemon.log | wc -l)"
+echo "Messages Client 2: $(sudo grep "Client2_Message" /var/log/matt_daemon/matt_daemon.log | wc -l)"
+echo "Messages Client 3: $(sudo grep "Client3_Message" /var/log/matt_daemon/matt_daemon.log | wc -l)"
+echo "Total messages: $(sudo grep "User input:" /var/log/matt_daemon/matt_daemon.log | wc -l)"
+
+
+
+
+
