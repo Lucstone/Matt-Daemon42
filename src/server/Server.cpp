@@ -15,105 +15,89 @@ Server::~Server() {
 }
 
 bool Server::init() {
-    TintinReporter::getInstance().log(TintinReporter::INFO, 
-        "Matt_daemon: Creating server.");
-    
-    // Créer le socket
+    TintinReporter::getInstance().log(TintinReporter::INFO, "Matt_daemon: Creating server.");
+
     _serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (_serverSocket == -1) {
-        TintinReporter::getInstance().log(TintinReporter::ERROR, 
-            "Matt_daemon: Cannot create socket.");
+        TintinReporter::getInstance().log(TintinReporter::ERROR, "Matt_daemon: Cannot create socket.");
         return false;
     }
-    
-    // Permettre la réutilisation de l'adresse
+
     int opt = 1;
+
     setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-    
-    // Configurer l'adresse
+
     struct sockaddr_in serverAddr;
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(_port);
-    
-    // Bind
+
     if (bind(_serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == -1) {
-        TintinReporter::getInstance().log(TintinReporter::ERROR, 
-            "Matt_daemon: Cannot bind socket.");
+        TintinReporter::getInstance().log(TintinReporter::ERROR, "Matt_daemon: Cannot bind socket.");
         close(_serverSocket);
         return false;
     }
-    
-    // Listen
+
     if (listen(_serverSocket, MAX_CLIENTS) == -1) {
-        TintinReporter::getInstance().log(TintinReporter::ERROR, 
-            "Matt_daemon: Cannot listen on socket.");
+        TintinReporter::getInstance().log(TintinReporter::ERROR, "Matt_daemon: Cannot listen on socket.");
         close(_serverSocket);
         return false;
     }
-    
-    // Rendre le socket non-bloquant
+
     int flags = fcntl(_serverSocket, F_GETFL, 0);
+
     fcntl(_serverSocket, F_SETFL, flags | O_NONBLOCK);
-    
-    TintinReporter::getInstance().log(TintinReporter::INFO, 
-        "Matt_daemon: Server created.");
-    
+
+    TintinReporter::getInstance().log(TintinReporter::INFO, "Matt_daemon: Server created.");
+
     return true;
 }
 
 void Server::run() {
     _running = true;
-    
-    fd_set readfds;
-    struct timeval tv;
-    
+
+    fd_set          readfds;
+    struct timeval  tv;
+
     while (_running && !SignalHandler::shouldQuit()) {
         FD_ZERO(&readfds);
         FD_SET(_serverSocket, &readfds);
-        
+
         int maxFd = _serverSocket;
-        
-        // Ajouter les clients existants
+
         for (size_t i = 0; i < _clients.size(); i++) {
             FD_SET(_clients[i], &readfds);
             if (_clients[i] > maxFd) {
                 maxFd = _clients[i];
             }
         }
-        
-        // Timeout pour vérifier les signaux régulièrement
+
         tv.tv_sec = 1;
         tv.tv_usec = 0;
-        
+
         int activity = select(maxFd + 1, &readfds, NULL, NULL, &tv);
-        
+
         if (activity < 0) {
             continue;
         }
         
-        // Nouvelle connexion
         if (FD_ISSET(_serverSocket, &readfds)) {
-            struct sockaddr_in clientAddr;
-            socklen_t clientLen = sizeof(clientAddr);
-            int clientSocket = accept(_serverSocket, 
-                (struct sockaddr*)&clientAddr, &clientLen);
-            
+            struct sockaddr_in  clientAddr;
+            socklen_t           clientLen = sizeof(clientAddr);
+            int                 clientSocket = accept(_serverSocket, (struct sockaddr*)&clientAddr, &clientLen);
+
             if (clientSocket >= 0) {
                 if (_clients.size() < MAX_CLIENTS) {
                     _clients.push_back(clientSocket);
-                    TintinReporter::getInstance().log(TintinReporter::INFO, 
-                        "Matt_daemon: New client connected.");
+                    TintinReporter::getInstance().log(TintinReporter::INFO, "Matt_daemon: New client connected.");
                 } else {
-                    TintinReporter::getInstance().log(TintinReporter::WARNING, 
-                        "Matt_daemon: Max clients reached. Connection refused.");
+                    TintinReporter::getInstance().log(TintinReporter::WARNING, "Matt_daemon: Max clients reached. Connection refused.");
                     close(clientSocket);
                 }
             }
         }
         
-        // Traiter les clients
         for (size_t i = 0; i < _clients.size(); ) {
             if (FD_ISSET(_clients[i], &readfds)) {
                 if (!handleClient(_clients[i])) {
@@ -128,56 +112,58 @@ void Server::run() {
 }
 
 bool Server::handleClient(int clientSocket) {
-    char buffer[BUFFER_SIZE];
+    char    buffer[BUFFER_SIZE];
+
     memset(buffer, 0, BUFFER_SIZE);
-    
+
     ssize_t bytesRead = recv(clientSocket, buffer, BUFFER_SIZE - 1, 0);
-    
+
     if (bytesRead <= 0) {
         return false;
     }
-    
+
     std::string message(buffer, bytesRead);
+
     message = trim(message);
-    
+
     if (message == "quit") {
-        TintinReporter::getInstance().log(TintinReporter::INFO, 
-            "Matt_daemon: Request quit.");
+        TintinReporter::getInstance().log(TintinReporter::INFO, "Matt_daemon: Request quit.");
         _running = false;
         return false;
     }
-    
+
     if (!message.empty()) {
-        TintinReporter::getInstance().log(TintinReporter::LOG, 
-            "Matt_daemon: User input: " + message);
+        TintinReporter::getInstance().log(TintinReporter::LOG, "Matt_daemon: User input: " + message);
     }
-    
+
     return true;
 }
 
 void Server::removeClient(int clientSocket) {
     close(clientSocket);
-    TintinReporter::getInstance().log(TintinReporter::INFO, 
-        "Matt_daemon: Client disconnected.");
+    TintinReporter::getInstance().log(TintinReporter::INFO, "Matt_daemon: Client disconnected.");
 }
 
 std::string Server::trim(const std::string& str) {
     size_t first = str.find_first_not_of(" \t\n\r");
+
     if (first == std::string::npos) {
         return "";
     }
+
     size_t last = str.find_last_not_of(" \t\n\r");
+
     return str.substr(first, (last - first + 1));
 }
 
 void Server::stop() {
     _running = false;
-    
+
     for (size_t i = 0; i < _clients.size(); i++) {
         close(_clients[i]);
     }
     _clients.clear();
-    
+
     if (_serverSocket != -1) {
         close(_serverSocket);
         _serverSocket = -1;

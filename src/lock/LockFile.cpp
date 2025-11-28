@@ -15,22 +15,19 @@ LockFile::~LockFile() {
 }
 
 bool LockFile::create() {
-    // Tenter d'ouvrir le fichier de lock
     _fd = open(LOCK_FILE.c_str(), O_CREAT | O_EXCL | O_WRONLY, 0644);
-    
+
     if (_fd == -1) {
         if (errno == EEXIST) {
             std::cerr << "Can't open :" << LOCK_FILE << std::endl;
-            TintinReporter::getInstance().log(TintinReporter::ERROR, 
-                "Matt_daemon: Error file locked.");
+            TintinReporter::getInstance().log(TintinReporter::ERROR, "Matt_daemon: Error file locked.");
         } else {
             std::cerr << "Error creating lock file: " << strerror(errno) << std::endl;
-            TintinReporter::getInstance().log(TintinReporter::ERROR, 
-                "Matt_daemon: Cannot create lock file.");
+            TintinReporter::getInstance().log(TintinReporter::ERROR, "Matt_daemon: Cannot create lock file.");
         }
         return false;
     }
-    
+
     return true;
 }
 

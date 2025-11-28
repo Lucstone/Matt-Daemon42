@@ -15,22 +15,21 @@ TintinReporter::~TintinReporter() {
 }
 
 TintinReporter& TintinReporter::getInstance() {
-    static TintinReporter instance;
+    static TintinReporter   instance;
+
     return instance;
 }
 
 bool TintinReporter::init() {
-    // Créer le répertoire de logs s'il n'existe pas
     mkdir(LOG_DIR.c_str(), 0755);
-    
-    // Ouvrir le fichier de log en mode append
+
     _logFile.open(LOG_FILE.c_str(), std::ios::app);
-    
+
     if (!_logFile.is_open()) {
         std::cerr << "Error: Cannot open log file: " << LOG_FILE << std::endl;
         return false;
     }
-    
+
     return true;
 }
 
@@ -41,10 +40,10 @@ void TintinReporter::close() {
 }
 
 std::string TintinReporter::getTimestamp() const {
-    time_t now = time(0);
-    struct tm* timeinfo = localtime(&now);
-    
-    std::ostringstream oss;
+    time_t              now = time(0);
+    struct tm           *timeinfo = localtime(&now);
+    std::ostringstream  oss;
+
     oss << std::setfill('0') 
         << std::setw(2) << timeinfo->tm_mday << "/"
         << std::setw(2) << (timeinfo->tm_mon + 1) << "/"
@@ -52,7 +51,7 @@ std::string TintinReporter::getTimestamp() const {
         << std::setw(2) << timeinfo->tm_hour << ":"
         << std::setw(2) << timeinfo->tm_min << ":"
         << std::setw(2) << timeinfo->tm_sec;
-    
+
     return oss.str();
 }
 
@@ -70,7 +69,7 @@ void TintinReporter::log(LogLevel level, const std::string& message) {
     if (!_logFile.is_open()) {
         return;
     }
-    
+
     _logFile << "[" << getTimestamp() << "] [ " 
              << getLevelString(level) << " ] - " 
              << message << std::endl;

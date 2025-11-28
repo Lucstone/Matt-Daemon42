@@ -12,11 +12,11 @@ public:
         WARNING
     };
 
-    static TintinReporter& getInstance();
-    
-    void log(LogLevel level, const std::string& message);
-    bool init();
-    void close();
+    static TintinReporter   &getInstance();
+
+    void                    log(LogLevel level, const std::string& message);
+    bool                    init();
+    void                    close();
 
 private:
     TintinReporter();
@@ -24,9 +24,9 @@ private:
     TintinReporter(const TintinReporter&) = delete;
     TintinReporter& operator=(const TintinReporter&) = delete;
 
-    std::string getTimestamp() const;
-    std::string getLevelString(LogLevel level) const;
-    
+    std::string             getTimestamp() const;
+    std::string             getLevelString(LogLevel level) const;
+
     std::ofstream               _logFile;
     static const std::string    LOG_DIR;
     static const std::string    LOG_FILE;

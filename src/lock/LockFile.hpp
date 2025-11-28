@@ -6,7 +6,7 @@ class LockFile {
 public:
     LockFile();
     ~LockFile();
-    
+
     bool create();
     void remove();
     bool exists() const;
