@@ -10,7 +10,7 @@
 #                                                                              #
 # **************************************************************************** #
 
-NAME        = taskmaster
+NAME        = MattDaemon
 
 CXX         = c++
 CXXFLAGS    = -Wall -Wextra -Werror -std=c++17 

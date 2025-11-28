@@ -1,5 +1,6 @@
 #include "SignalHandler.hpp"
 #include "TintinReporter.hpp"
+#include <sstream>
 
 volatile sig_atomic_t SignalHandler::_quit = 0;
 
@@ -9,10 +10,11 @@ void SignalHandler::setup() {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
     
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
-    sigaction(SIGHUP, &sa, NULL);
-    sigaction(SIGQUIT, &sa, NULL);
+    // Intercepter les signaux principaux
+    sigaction(SIGINT, &sa, NULL);   // Ctrl+C
+    sigaction(SIGTERM, &sa, NULL);  // kill
+    sigaction(SIGHUP, &sa, NULL);   // Terminal fermé
+    sigaction(SIGQUIT, &sa, NULL);  // Ctrl+\
 }
 
 void SignalHandler::signalCallback(int signum) {
