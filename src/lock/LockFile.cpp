@@ -38,7 +38,3 @@ void LockFile::remove() {
         _fd = -1;
     }
 }
-
-bool LockFile::exists() const {
-    return (access(LOCK_FILE.c_str(), F_OK) == 0);
-}
