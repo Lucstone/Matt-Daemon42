@@ -9,6 +9,15 @@
 
 Daemon::Daemon() : _server(NULL), _lockFile(NULL) {}
 
+Daemon::Daemon(const Daemon& other) {
+    (void)other;
+}
+
+Daemon& Daemon::operator=(const Daemon& other) {
+    if (this != &other) {}
+    return *this;
+}
+
 Daemon::~Daemon() {
     delete _server;
     delete _lockFile;

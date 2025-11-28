@@ -10,6 +10,15 @@
 
 Server::Server(int port) : _port(port), _serverSocket(-1), _running(false) {}
 
+Server::Server(const Server& other) {
+    (void)other;
+}
+
+Server& Server::operator=(const Server& other) {
+    if (this != &other) {}
+    return *this;
+}
+
 Server::~Server() {
     stop();
 }

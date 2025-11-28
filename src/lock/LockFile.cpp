@@ -10,6 +10,15 @@ const std::string LockFile::LOCK_FILE = "/var/lock/matt_daemon.lock";
 
 LockFile::LockFile() : _fd(-1) {}
 
+LockFile::LockFile(const LockFile& other) {
+    (void)other;
+}
+
+LockFile& LockFile::operator=(const LockFile& other) {
+    if (this != &other) {}
+    return *this;
+}
+
 LockFile::~LockFile() {
     remove();
 }

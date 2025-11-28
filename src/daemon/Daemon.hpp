@@ -13,6 +13,8 @@ private:
 
 public:
     Daemon();
+    Daemon(const Daemon& other);
+    Daemon& operator=(const Daemon& other);
     ~Daemon();
 
     bool init();

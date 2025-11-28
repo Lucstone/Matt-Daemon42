@@ -19,6 +19,8 @@ private:
 
 public:
     Server(int port);
+    Server(const Server& other);
+    Server& operator=(const Server& other);
     ~Server();
 
     bool        init();

@@ -3,6 +3,19 @@
 
 volatile sig_atomic_t SignalHandler::_quit = 0;
 
+SignalHandler::SignalHandler() {}
+
+SignalHandler::SignalHandler(const SignalHandler& other) {
+    (void)other;
+}
+
+SignalHandler& SignalHandler::operator=(const SignalHandler& other) {
+    (void)other;
+    return *this;
+}
+
+SignalHandler::~SignalHandler() {}
+
 void SignalHandler::setup() {
     struct sigaction    sa;
 

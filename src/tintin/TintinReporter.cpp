@@ -10,6 +10,15 @@ const std::string TintinReporter::LOG_FILE = "/var/log/matt_daemon/matt_daemon.l
 
 TintinReporter::TintinReporter() {}
 
+TintinReporter::TintinReporter(const TintinReporter& other) {
+    (void)other;
+}
+
+TintinReporter& TintinReporter::operator=(const TintinReporter& other) {
+    (void)other;
+    return *this;
+}
+
 TintinReporter::~TintinReporter() {
     close();
 }

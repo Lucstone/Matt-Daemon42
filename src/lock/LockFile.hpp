@@ -9,6 +9,8 @@ private:
 
 public:
     LockFile();
+    LockFile(const LockFile& other);
+    LockFile& operator=(const LockFile& other);
     ~LockFile();
 
     bool create();
