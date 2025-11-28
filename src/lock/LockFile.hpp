@@ -6,6 +6,7 @@ class LockFile {
 private:
     static const std::string    LOCK_FILE;
     int                         _fd;
+    bool                        _locked;
 
 public:
     LockFile();
@@ -15,4 +16,5 @@ public:
 
     bool create();
     void remove();
+    bool isLocked() const;
 };
